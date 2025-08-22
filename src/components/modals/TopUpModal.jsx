@@ -12,28 +12,7 @@ const TopUpModal = ({
 
   const predefinedAmounts = [50000, 100000, 200000, 500000, 1000000];
 
-  const handleTopUp = async () => {
-    if (!topUpAmount || parseFloat(topUpAmount) <= 0) {
-      alert('Por favor ingresa un monto válido');
-      return;
-    }
 
-    if (parseFloat(topUpAmount) < 10000) {
-      alert('El monto mínimo de recarga es $10,000 COP');
-      return;
-    }
-
-    setIsProcessing(true);
-    try {
-      await onTopUp(topUpAmount);
-      setTopUpAmount('');
-      onClose();
-    } catch (error) {
-      // Error handling - could be replaced with user notification
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleClose = () => {
     if (!isProcessing) {
