@@ -20,14 +20,6 @@ const DashboardStats = ({
     return detailedBalance?.uninvestedDeposits || 0;
   };
   
-  // Función para obtener el balance total (mantener para otras secciones)
-  const getTotalBalance = () => {
-    return detailedBalance?.totalBalance || 
-           dashboardData?.balance || 
-           dashboardData?.totalBalance || 
-           0;
-  };
-  
   return (
     <>
       {/* Información del usuario */}
