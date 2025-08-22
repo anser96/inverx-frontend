@@ -45,7 +45,16 @@ const TransactionsHistory = ({ transactions, formatCOP }) => {
                   .map((transaction, index) => (
                   <tr key={transaction.id} className="hover:bg-white/5 transition-colors duration-300 group">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                      {new Date(transaction.createdAt).toLocaleDateString()}
+                      {(() => {
+                        const date = new Date(transaction.createdAt);
+                        const year = date.getUTCFullYear();
+                        const month = date.getUTCMonth();
+                        const day = date.getUTCDate();
+                        const hours = date.getUTCHours().toString().padStart(2, '0');
+                        const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                        const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                        return `${day} ${monthNames[month]} ${year}, ${hours}:${minutes}`;
+                      })()} 
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
                       <div className="flex items-center space-x-2">

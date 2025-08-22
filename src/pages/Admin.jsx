@@ -476,13 +476,16 @@ const Admin = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            {new Date(transaction.createdAt).toLocaleDateString('es-CO', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
+                            {(() => {
+                              const date = new Date(transaction.createdAt);
+                              const year = date.getUTCFullYear();
+                              const month = date.getUTCMonth();
+                              const day = date.getUTCDate();
+                              const hours = date.getUTCHours().toString().padStart(2, '0');
+                              const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+                              const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+                              return `${day} ${monthNames[month]} ${year}, ${hours}:${minutes}`;
+                            })()} 
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             <div className="flex space-x-2">
