@@ -14,3 +14,28 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Ocultar botones nativos de mostrar/ocultar contraseña del navegador */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
+input[type="password"]::-webkit-credentials-auto-fill-button,
+input[type="password"]::-webkit-strong-password-auto-fill-button {
+  display: none !important;
+}
+
+/* Para Firefox */
+input[type="password"] {
+  -moz-appearance: textfield;
+}
+
+/* Ocultar el botón de revelar contraseña en Edge/Chrome */
+input[type="password"]::-webkit-textfield-decoration-container {
+  visibility: hidden;
+}
+
+input[type="text"]::-webkit-textfield-decoration-container {
+  visibility: hidden;
+}
