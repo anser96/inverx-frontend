@@ -54,7 +54,6 @@ const Admin = () => {
         setPendingTransactions([]);
       }
     } catch (error) {
-      console.error('Error fetching pending transactions:', error);
       showMessage('error', 'Error', 'No se pudieron cargar las transacciones pendientes.');
       setPendingTransactions([]);
     }
@@ -71,19 +70,12 @@ const Admin = () => {
         }
       });
       
-      console.log('=== RESPUESTA DE PROYECTOS ===');
-      console.log('Datos completos:', response.data);
-      
       if (response.data && Array.isArray(response.data)) {
-        console.log('Primer proyecto (ejemplo):', response.data[0]);
-        console.log('Campos disponibles:', response.data[0] ? Object.keys(response.data[0]) : 'No hay proyectos');
         setProjects(response.data);
       } else {
-        console.log('Los datos no son un array:', typeof response.data);
         setProjects([]);
       }
     } catch (error) {
-      console.error('Error fetching projects:', error);
       showMessage('error', 'Error', 'No se pudieron cargar los proyectos.');
       setProjects([]);
     } finally {
@@ -93,34 +85,21 @@ const Admin = () => {
 
   // Verificar autenticación y rol de administrador
   useEffect(() => {
-    console.log('=== INICIO VERIFICACIÓN ADMIN ===');
-    console.log('Todos los items en localStorage:', {
-      token: localStorage.getItem('token'),
-      idUser: localStorage.getItem('idUser'),
-      userRole: localStorage.getItem('userRole')
-    });
-    
     const token = localStorage.getItem('token');
     const userRole = localStorage.getItem('userRole');
     
-    console.log('Verificando acceso admin - Token:', !!token, 'UserRole:', userRole);
-    
     if (!token) {
-      console.log('No hay token, redirigiendo a login');
       navigate('/login');
       return;
     }
     
     if (userRole !== 'ADMIN') {
-      console.log('Usuario no es admin, rol actual:', userRole);
       showMessage('error', 'Acceso Denegado', `No tienes permisos para acceder al panel administrativo. Rol actual: ${userRole || 'No definido'}`);
       setTimeout(() => {
         navigate('/dashboard');
       }, 2000);
       return;
     }
-    
-    console.log('Acceso admin verificado, cargando datos...');
     
     // Cargar datos iniciales
     const loadInitialData = async () => {
@@ -155,7 +134,6 @@ const Admin = () => {
       // Recargar la lista de proyectos
       await fetchProjects();
     } catch (error) {
-      console.error('Error toggling project status:', error);
       const errorMessage = error.response?.data?.message || 'No se pudo cambiar el estado del proyecto.';
       showMessage('error', 'Error', errorMessage);
     } finally {
@@ -179,7 +157,6 @@ const Admin = () => {
       // Recargar la lista de transacciones pendientes
       await fetchPendingTransactions();
     } catch (error) {
-      console.error('Error approving transaction:', error);
       const errorMessage = error.response?.data?.message || 'No se pudo aprobar la transacción.';
       showMessage('error', 'Error de Aprobación', errorMessage);
     } finally {
@@ -203,7 +180,6 @@ const Admin = () => {
       // Recargar la lista de transacciones pendientes
       await fetchPendingTransactions();
     } catch (error) {
-      console.error('Error rejecting transaction:', error);
       const errorMessage = error.response?.data?.message || 'No se pudo rechazar la transacción.';
       showMessage('error', 'Error de Rechazo', errorMessage);
     } finally {
@@ -265,7 +241,6 @@ const Admin = () => {
       // Recargar la lista de proyectos
       await fetchProjects();
     } catch (error) {
-      console.error('Error creating project:', error);
       const errorMessage = error.response?.data?.message || 'No se pudo crear el proyecto.';
       showMessage('error', 'Error de Creación', errorMessage);
     } finally {

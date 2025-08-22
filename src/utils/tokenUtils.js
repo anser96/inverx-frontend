@@ -13,7 +13,6 @@ const decodeJWT = (token) => {
     
     return JSON.parse(decodedPayload);
   } catch (error) {
-    console.error('Error decoding JWT:', error);
     return null;
   }
 };
@@ -30,7 +29,6 @@ export const getUserRoleFromToken = () => {
     // El rol puede estar en diferentes campos dependiendo de cómo esté estructurado el token
     return decodedToken.role || decodedToken.userRole || decodedToken.authorities || null;
   } catch (error) {
-    console.error('Error getting user role from token:', error);
     return null;
   }
 };
@@ -61,7 +59,6 @@ export const isTokenExpired = () => {
     const currentTime = Date.now() / 1000;
     return decodedToken.exp < currentTime;
   } catch (error) {
-    console.error('Error checking token expiration:', error);
     return true;
   }
 };

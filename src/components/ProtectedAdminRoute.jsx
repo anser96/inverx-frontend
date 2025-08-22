@@ -30,7 +30,6 @@ const ProtectedAdminRoute = ({ children }) => {
     // Si es admin y el token es válido, renderizar el componente
     return children;
   } catch (error) {
-    console.error('Error decodificando token:', error);
     localStorage.removeItem('token');
     localStorage.removeItem('idUser');
     return <Navigate to="/login" replace />;

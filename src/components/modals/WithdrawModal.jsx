@@ -39,7 +39,7 @@ const WithdrawModal = ({
       setPhoneNumber('');
       onClose();
     } catch (error) {
-      console.error('Error processing withdrawal:', error);
+      // Error handling - could be replaced with user notification
     } finally {
       setIsProcessing(false);
     }

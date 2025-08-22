@@ -19,7 +19,6 @@ const useUserData = () => {
       setUserInfo(response.data.user || response.data);
       return response.data.user || response.data;
     } catch (error) {
-      console.error('Error fetching user info:', error);
       setError('Error al cargar información del usuario');
       throw error;
     }
@@ -35,7 +34,6 @@ const useUserData = () => {
       setDashboardData(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       setError('Error al cargar datos del dashboard');
       throw error;
     }
@@ -51,7 +49,6 @@ const useUserData = () => {
       setDetailedBalance(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching detailed balance:', error);
       setError('Error al cargar balance detallado');
       throw error;
     }
@@ -69,7 +66,6 @@ const useUserData = () => {
       
       return response.data;
     } catch (error) {
-      console.error('Error fetching projects:', error);
       setError('Error al cargar proyectos');
       throw error;
     }
@@ -86,7 +82,7 @@ const useUserData = () => {
         fetchProjects()
       ]);
     } catch (error) {
-      console.error('Error refreshing data:', error);
+      // Error refreshing data
     } finally {
       setLoading(false);
     }

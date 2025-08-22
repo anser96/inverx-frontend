@@ -18,7 +18,6 @@ const useTransactions = () => {
       setTransactions(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching transactions:', error);
       const errorMessage = error.response?.data?.message || 'Error al cargar transacciones';
       setError(errorMessage);
       setTransactions([]);
@@ -49,7 +48,6 @@ const useTransactions = () => {
         message: response.data.message || 'Retiro procesado exitosamente'
       };
     } catch (error) {
-      console.error('Error processing withdrawal:', error);
       const errorMessage = error.response?.data?.message || 'Error al procesar el retiro';
       return {
         success: false,
@@ -77,7 +75,6 @@ const useTransactions = () => {
         message: response.data.message || 'Recarga procesada exitosamente'
       };
     } catch (error) {
-      console.error('Error processing top-up:', error);
       const errorMessage = error.response?.data?.message || 'Error al procesar la recarga';
       return {
         success: false,
@@ -105,7 +102,6 @@ const useTransactions = () => {
         message: response.data.message || 'Inversión realizada exitosamente'
       };
     } catch (error) {
-      console.error('Error processing investment:', error);
       const errorMessage = error.response?.data?.message || 'Error al procesar la inversión';
       return {
         success: false,

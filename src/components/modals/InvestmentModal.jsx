@@ -32,7 +32,7 @@ const InvestmentModal = ({
       setInvestmentAmount('');
       onClose();
     } catch (error) {
-      console.error('Error processing investment:', error);
+      // Error handling - could be replaced with user notification
     } finally {
       setIsProcessing(false);
     }

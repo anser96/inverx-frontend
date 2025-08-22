@@ -6,6 +6,7 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,37 +16,23 @@ export default function Login({ onLogin }) {
         email,
         password,
       });
-      console.log("Respuesta del login:", res.data);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("idUser", res.data.idUSer || "1");
       
       // Guardar el rol del usuario
       if (res.data.role) {
         localStorage.setItem("userRole", res.data.role);
-        console.log("Rol guardado desde respuesta:", res.data.role);
-        console.log("Verificando localStorage después de guardar:", localStorage.getItem("userRole"));
       } else {
         // Si no viene el rol en la respuesta, intentar extraerlo del token JWT
         try {
           const payload = JSON.parse(atob(res.data.token.split('.')[1]));
-          console.log("Payload del token:", payload);
           if (payload.role) {
             localStorage.setItem("userRole", payload.role);
-            console.log("Rol guardado desde token:", payload.role);
-            console.log("Verificando localStorage después de guardar desde token:", localStorage.getItem("userRole"));
-          } else {
-            console.warn("No se encontró rol en el token");
           }
         } catch (error) {
-          console.error('Error decodificando token para obtener rol:', error);
+          // Error decoding token
         }
       }
-      
-      // Verificación final de localStorage
-      console.log("Estado final de localStorage:");
-      console.log("- token:", !!localStorage.getItem("token"));
-      console.log("- idUser:", localStorage.getItem("idUser"));
-      console.log("- userRole:", localStorage.getItem("userRole"));
       
       onLogin();
     } catch (err) {
@@ -216,14 +203,30 @@ export default function Login({ onLogin }) {
             {/* Input de contraseña */}
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder="Contraseña"
-                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-blue-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
+                className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 pr-20 text-white placeholder-blue-200 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-300"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-blue-300 hover:text-blue-200 transition-colors duration-200 p-1"
+                >
+                  {showPassword ? (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
                 <svg className="w-5 h-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>

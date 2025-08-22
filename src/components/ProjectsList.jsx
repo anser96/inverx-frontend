@@ -9,16 +9,7 @@ const ProjectsList = ({
     onInvest(project);
   };
 
-  // Log temporal para debug del status
-  console.log('Projects data:', projects.map(p => ({ 
-    id: p.id, 
-    name: p.name, 
-    status: p.status, 
-    statusType: typeof p.status,
-    active: p.active,
-    activeType: typeof p.active,
-    allFields: Object.keys(p)
-  })));
+  // Debug information removed
 
   return (
     <div data-section="projects">

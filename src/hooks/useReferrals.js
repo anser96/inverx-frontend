@@ -20,7 +20,6 @@ const useReferrals = () => {
       setReferralData(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching referral summary:', error);
       const errorMessage = error.response?.data?.message || 'Error al cargar resumen de referidos';
       setError(errorMessage);
       setReferralData({
@@ -44,7 +43,6 @@ const useReferrals = () => {
       setReferralsList(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching referrals list:', error);
       const errorMessage = error.response?.data?.message || 'Error al cargar lista de referidos';
       setError(errorMessage);
       setReferralsList([]);
@@ -62,7 +60,6 @@ const useReferrals = () => {
       setReferralEarnings(response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching referral earnings:', error);
       const errorMessage = error.response?.data?.message || 'Error al cargar ganancias de referidos';
       setError(errorMessage);
       setReferralEarnings([]);
@@ -80,7 +77,7 @@ const useReferrals = () => {
         fetchReferralEarnings()
       ]);
     } catch (error) {
-      console.error('Error refreshing referral data:', error);
+      // Error refreshing referral data
     } finally {
       setLoading(false);
     }
@@ -99,7 +96,6 @@ const useReferrals = () => {
         code: response.data.referralCode
       };
     } catch (error) {
-      console.error('Error generating referral code:', error);
       const errorMessage = error.response?.data?.message || 'Error al generar código de referido';
       return {
         success: false,
@@ -120,7 +116,6 @@ const useReferrals = () => {
         message: response.data.message || 'Bono reclamado exitosamente'
       };
     } catch (error) {
-      console.error('Error claiming referral bonus:', error);
       const errorMessage = error.response?.data?.message || 'Error al reclamar bono';
       return {
         success: false,
