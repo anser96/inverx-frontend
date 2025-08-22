@@ -1,70 +1,112 @@
-# Getting Started with Create React App
+# InverX Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Plataforma de inversiones inteligentes - Frontend desarrollado en React.
 
-## Available Scripts
+## 🚀 Despliegue en Vercel
 
-In the project directory, you can run:
+### Prerrequisitos
+1. Cuenta en [GitHub](https://github.com)
+2. Cuenta en [Vercel](https://vercel.com)
+3. Repositorio del proyecto subido a GitHub
 
-### `npm start`
+### Pasos para el Despliegue
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+#### 1. Preparar el Repositorio
+```bash
+# Asegúrate de que todos los cambios estén commitados
+git add .
+git commit -m "Preparar para despliegue en Vercel"
+git push origin main
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+#### 2. Conectar con Vercel
+1. Ve a [vercel.com](https://vercel.com) e inicia sesión con GitHub
+2. Haz clic en "New Project"
+3. Selecciona tu repositorio `inverx-frontend`
+4. Vercel detectará automáticamente que es un proyecto React
 
-### `npm test`
+#### 3. Configurar Variables de Entorno
+En el dashboard de Vercel, ve a Settings > Environment Variables y agrega:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+REACT_APP_API_BASE_URL=https://tu-api-backend.com/api
+REACT_APP_API_TIMEOUT=15000
+```
 
-### `npm run build`
+**⚠️ IMPORTANTE**: Reemplaza `https://tu-api-backend.com/api` con la URL real de tu API backend.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### 4. Desplegar
+1. Haz clic en "Deploy"
+2. Vercel construirá y desplegará automáticamente tu aplicación
+3. Recibirás una URL como: `https://inverx-frontend.vercel.app`
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Desarrollo Local
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Instalación
+```bash
+npm install
+```
 
-### `npm run eject`
+### Variables de Entorno
+Copia el archivo de ejemplo y configura tus variables:
+```bash
+cp .env.example .env
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Edita `.env` con tus configuraciones locales:
+```
+REACT_APP_API_BASE_URL=http://localhost:8080/api
+REACT_APP_API_TIMEOUT=10000
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Ejecutar en Desarrollo
+```bash
+npm start
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Construir para Producción
+```bash
+npm run build
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📁 Estructura del Proyecto
 
-## Learn More
+```
+src/
+├── components/          # Componentes reutilizables
+├── pages/              # Páginas principales
+├── hooks/              # Custom hooks
+├── utils/              # Utilidades y configuraciones
+├── context/            # Context providers
+└── App.js              # Componente principal
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🔧 Configuración
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Variables de Entorno Disponibles
+- `REACT_APP_API_BASE_URL`: URL base de la API backend
+- `REACT_APP_API_TIMEOUT`: Timeout para peticiones HTTP (ms)
 
-### Code Splitting
+### Archivos de Configuración
+- `.env`: Variables para desarrollo local
+- `.env.production`: Variables para producción
+- `vercel.json`: Configuración específica para Vercel
+- `public/_redirects`: Configuración para SPA routing
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## 🚨 Notas Importantes
 
-### Analyzing the Bundle Size
+1. **CORS**: Asegúrate de que tu API backend permita requests desde el dominio de Vercel
+2. **Variables de Entorno**: Nunca commitees archivos `.env` con datos sensibles
+3. **API URL**: Actualiza `REACT_APP_API_BASE_URL` en Vercel con la URL real de tu backend
+4. **SSL**: Vercel proporciona HTTPS automáticamente
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 📞 Soporte
 
-### Making a Progressive Web App
+Si tienes problemas con el despliegue:
+1. Revisa los logs en el dashboard de Vercel
+2. Verifica que las variables de entorno estén configuradas correctamente
+3. Asegúrate de que la API backend esté accesible desde internet
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+**Desarrollado con ❤️ para InverX**

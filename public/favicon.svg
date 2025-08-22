@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#5a5a5a" stroke="#4a4a4a" stroke-width="1"/>
+  
+  <!-- Chart bars -->
+  <rect x="8" y="22" width="3" height="6" fill="#ffffff" rx="0.5"/>
+  <rect x="12" y="20" width="3" height="8" fill="#ffffff" rx="0.5"/>
+  <rect x="16" y="18" width="3" height="10" fill="#ffffff" rx="0.5"/>
+  <rect x="20" y="16" width="3" height="12" fill="#ffffff" rx="0.5"/>
+  
+  <!-- Growth arrow -->
+  <path d="M6 26 L26 6" stroke="#7CB342" stroke-width="2.5" stroke-linecap="round"/>
+  
+  <!-- Arrow head -->
+  <path d="M20 6 L26 6 L26 12" fill="none" stroke="#7CB342" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
