@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import NotificationModal from './NotificationModal';
 
 const TopUpModal = ({ 
   isOpen, 
@@ -9,27 +10,37 @@ const TopUpModal = ({
   const [topUpAmount, setTopUpAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentStep, setCurrentStep] = useState(1); // 1: ingreso de monto, 2: mensaje QR
+  const [notification, setNotification] = useState({ isOpen: false, title: '', message: '', type: 'error' });
 
   const predefinedAmounts = [50000, 100000, 200000, 500000, 1000000];
 
 
 
+  const showNotification = (title, message, type = 'error') => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification({ isOpen: false, title: '', message: '', type: 'error' });
+  };
+
   const handleClose = () => {
     if (!isProcessing) {
       setTopUpAmount('');
       setCurrentStep(1);
+      closeNotification();
       onClose();
     }
   };
 
   const handleConfirmAmount = () => {
     if (!topUpAmount || parseFloat(topUpAmount) <= 0) {
-      alert('Por favor ingresa un monto válido');
+      showNotification('Monto Inválido', 'Por favor ingresa un monto válido para continuar con la recarga.');
       return;
     }
 
     if (parseFloat(topUpAmount) < 10000) {
-      alert('El monto mínimo de recarga es $10,000 COP');
+      showNotification('Monto Insuficiente', 'El monto mínimo de recarga es $10,000 COP. Por favor ingresa un monto mayor.', 'warning');
       return;
     }
 
@@ -243,6 +254,14 @@ const TopUpModal = ({
           )}
         </div>
       </div>
+      
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 };

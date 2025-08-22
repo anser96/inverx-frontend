@@ -82,6 +82,15 @@ const DashboardLayout = () => {
   };
 
   const handleInvestmentSubmit = async (projectId, amount) => {
+    // Validar saldo disponible antes de procesar la inversión
+    const availableBalance = detailedBalance?.uninvestedDeposits || 0;
+    const investmentAmount = parseFloat(amount);
+    
+    if (investmentAmount > availableBalance) {
+      showMessage('Saldo insuficiente para realizar esta inversión. Por favor recarga tu cuenta.', 'error');
+      return;
+    }
+    
     try {
       const result = await processInvestment(projectId, amount);
       if (result.success) {
@@ -304,6 +313,7 @@ const DashboardLayout = () => {
         onClose={() => setShowInvestmentModal(false)}
         selectedProject={selectedProject}
         onInvest={handleInvestmentSubmit}
+        availableBalance={detailedBalance?.uninvestedDeposits || 0}
         formatCOP={formatCOP}
       />
 

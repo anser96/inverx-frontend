@@ -1,28 +1,56 @@
 import React, { useState } from 'react';
+import NotificationModal from './NotificationModal';
 
 const InvestmentModal = ({ 
   isOpen, 
   onClose, 
   selectedProject, 
   onInvest, 
+  availableBalance,
   formatCOP 
 }) => {
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [notification, setNotification] = useState({ isOpen: false, title: '', message: '', type: 'error' });
+
+  const showNotification = (title, message, type = 'error') => {
+    setNotification({ isOpen: true, title, message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification({ isOpen: false, title: '', message: '', type: 'error' });
+  };
 
   const handleInvest = async () => {
     if (!investmentAmount || parseFloat(investmentAmount) <= 0) {
-      alert('Por favor ingresa un monto válido');
+      showNotification('Monto Inválido', 'Por favor ingresa un monto válido para continuar con la inversión.');
       return;
     }
 
     if (parseFloat(investmentAmount) < selectedProject?.minInvestment) {
-      alert(`El monto mínimo de inversión es ${formatCOP(selectedProject.minInvestment)}`);
+      showNotification(
+        'Monto Insuficiente', 
+        `El monto mínimo de inversión para este proyecto es ${formatCOP(selectedProject.minInvestment)}. Por favor ajusta tu inversión.`,
+        'warning'
+      );
       return;
     }
 
     if (parseFloat(investmentAmount) > selectedProject?.maxInvestment) {
-      alert(`El monto máximo de inversión es ${formatCOP(selectedProject.maxInvestment)}`);
+      showNotification(
+        'Monto Excedido', 
+        `El monto máximo de inversión para este proyecto es ${formatCOP(selectedProject.maxInvestment)}. Por favor ajusta tu inversión.`,
+        'warning'
+      );
+      return;
+    }
+
+    if (parseFloat(investmentAmount) > availableBalance) {
+      showNotification(
+        'Saldo Insuficiente', 
+        `No tienes suficiente saldo disponible para esta inversión. Tu saldo actual es ${formatCOP(availableBalance)}. Por favor recarga tu cuenta.`,
+        'error'
+      );
       return;
     }
 
@@ -41,6 +69,7 @@ const InvestmentModal = ({
   const handleClose = () => {
     if (!isProcessing) {
       setInvestmentAmount('');
+      closeNotification();
       onClose();
     }
   };
@@ -107,6 +136,12 @@ const InvestmentModal = ({
               <span>Mín: {formatCOP(selectedProject.minInvestment)}</span>
               <span>Máx: {formatCOP(selectedProject.maxInvestment)}</span>
             </div>
+            <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="flex justify-between items-center">
+                <span className="text-blue-300 text-xs font-medium">Saldo Disponible:</span>
+                <span className="text-blue-400 text-sm font-bold">{formatCOP(availableBalance)}</span>
+              </div>
+            </div>
           </div>
           
           {investmentAmount && (
@@ -151,6 +186,14 @@ const InvestmentModal = ({
           </div>
         </div>
       </div>
+      
+      <NotificationModal
+        isOpen={notification.isOpen}
+        onClose={closeNotification}
+        title={notification.title}
+        message={notification.message}
+        type={notification.type}
+      />
     </div>
   );
 };
