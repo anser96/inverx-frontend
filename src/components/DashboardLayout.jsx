@@ -25,13 +25,11 @@ const DashboardLayout = () => {
   
   // Custom hooks
   const {
-    userInfo,
-    dashboardData,
+    userData,
     detailedBalance,
     detailedBalanceInfo,
     projects,
     loading,
-    error,
     refreshAllData
   } = useUserData();
   
@@ -302,8 +300,8 @@ const DashboardLayout = () => {
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <DashboardStats
-              userInfo={userInfo}
-              dashboardData={dashboardData}
+              userInfo={userData}
+              dashboardData={userData}
               detailedBalance={detailedBalance}
               detailedBalanceInfo={detailedBalanceInfo}
               projects={projects}
@@ -335,7 +333,7 @@ const DashboardLayout = () => {
             referralEarnings={referralEarnings}
             loadingReferrals={referralsLoading}
             formatCOP={formatCOP}
-            userInfo={userInfo}
+            userInfo={userData}
           />
         )}
       </main>
