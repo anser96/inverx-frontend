@@ -26,6 +26,7 @@ const DashboardLayout = () => {
   // Custom hooks
   const {
     userData,
+    userInfo,
     detailedBalance,
     detailedBalanceInfo,
     projects,
@@ -46,7 +47,8 @@ const DashboardLayout = () => {
     referralsList,
     referralEarnings,
     loading: referralsLoading,
-    fetchReferralSummary
+    fetchReferralSummary,
+    generateReferralCode
   } = useReferrals();
 
   // Local state
@@ -159,6 +161,20 @@ const DashboardLayout = () => {
       }
     } catch (error) {
       showMessage('Error al procesar el retiro', 'error');
+    }
+  };
+
+  const handleGenerateReferralCode = async () => {
+    try {
+      const result = await generateReferralCode();
+      if (result.success) {
+        showMessage(result.message, 'success');
+        await refreshAllData();
+      } else {
+        showMessage(result.message, 'error');
+      }
+    } catch (error) {
+      showMessage('Error al generar código de referido', 'error');
     }
   };
 
@@ -333,7 +349,8 @@ const DashboardLayout = () => {
             referralEarnings={referralEarnings}
             loadingReferrals={referralsLoading}
             formatCOP={formatCOP}
-            userInfo={userData}
+            userInfo={userInfo}
+            onGenerateReferralCode={handleGenerateReferralCode}
           />
         )}
       </main>

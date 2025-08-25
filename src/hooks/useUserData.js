@@ -17,8 +17,9 @@ const useUserData = () => {
         throw new Error('No user ID found');
       }
       const response = await axiosInstance.get(`/users/${userId}`);
-      setUserInfo(response.data.user || response.data);
-      return response.data.user || response.data;
+      const userData = response.data.user || response.data;
+      setUserInfo(userData);
+      return userData;
     } catch (error) {
       setError('Error al cargar información del usuario');
       throw error;

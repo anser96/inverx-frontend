@@ -24,8 +24,7 @@ const useReferrals = () => {
       setError(errorMessage);
       setReferralData({
         totalReferrals: 0,
-        totalEarnings: 0,
-        referralCode: 'N/A'
+        totalEarnings: 0
       });
       throw error;
     } finally {

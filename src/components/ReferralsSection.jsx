@@ -6,7 +6,8 @@ const ReferralsSection = ({
   referralEarnings, 
   loadingReferrals, 
   formatCOP,
-  userInfo 
+  userInfo,
+  onGenerateReferralCode 
 }) => {
   return (
     <>
@@ -55,9 +56,13 @@ const ReferralsSection = ({
             
             <div className="backdrop-blur-xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-400/30 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-cyan-300 text-sm font-medium uppercase tracking-wider">Tu Código</p>
-                  <p className="text-2xl font-bold text-white mt-2 font-mono">{referralData?.referralCode || userInfo?.referralCode || 'N/A'}</p>
+                  {userInfo?.referralCode ? (
+                    <p className="text-2xl font-bold text-white mt-2 font-mono">{userInfo.referralCode}</p>
+                  ) : (
+                    <p className="text-lg text-gray-400 mt-2">Cargando código...</p>
+                  )}
                 </div>
                 <div className="w-12 h-12 bg-cyan-500/30 rounded-full flex items-center justify-center">
                   <svg className="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
