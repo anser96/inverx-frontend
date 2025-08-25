@@ -5,6 +5,7 @@ const useUserData = () => {
   const [userInfo, setUserInfo] = useState(null);
   const [dashboardData, setDashboardData] = useState(null);
   const [detailedBalance, setDetailedBalance] = useState(null);
+  const [detailedBalanceInfo, setDetailedBalanceInfo] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,6 +55,21 @@ const useUserData = () => {
     }
   }, []);
 
+  const fetchDetailedBalanceInfo = useCallback(async () => {
+    try {
+      const userId = localStorage.getItem('idUser');
+      if (!userId) {
+        throw new Error('No user ID found');
+      }
+      const response = await axiosInstance.get(`/users/${userId}/balance/detailed`);
+      setDetailedBalanceInfo(response.data);
+      return response.data;
+    } catch (error) {
+      setError('Error al cargar información detallada del balance');
+      throw error;
+    }
+  }, []);
+
   const fetchProjects = useCallback(async () => {
     try {
       const response = await axiosInstance.get('/projects');
@@ -79,6 +95,7 @@ const useUserData = () => {
         fetchUserInfo(),
         fetchDashboardData(),
         fetchDetailedBalance(),
+        fetchDetailedBalanceInfo(),
         fetchProjects()
       ]);
     } catch (error) {
@@ -86,7 +103,7 @@ const useUserData = () => {
     } finally {
       setLoading(false);
     }
-  }, [fetchUserInfo, fetchDashboardData, fetchDetailedBalance, fetchProjects]);
+  }, [fetchUserInfo, fetchDashboardData, fetchDetailedBalance, fetchDetailedBalanceInfo, fetchProjects]);
 
   useEffect(() => {
     refreshAllData();
@@ -105,6 +122,7 @@ const useUserData = () => {
     userInfo,
     dashboardData,
     detailedBalance,
+    detailedBalanceInfo,
     projects,
     loading,
     error,
@@ -112,6 +130,7 @@ const useUserData = () => {
     fetchUserInfo,
     fetchDashboardData,
     fetchDetailedBalance,
+    fetchDetailedBalanceInfo,
     fetchProjects
   };
 };

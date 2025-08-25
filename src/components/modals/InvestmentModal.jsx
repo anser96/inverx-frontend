@@ -21,32 +21,22 @@ const InvestmentModal = ({
     setNotification({ isOpen: false, title: '', message: '', type: 'error' });
   };
 
-  const handleInvest = async () => {
-    if (!investmentAmount || parseFloat(investmentAmount) <= 0) {
-      showNotification('Monto Inválido', 'Por favor ingresa un monto válido para continuar con la inversión.');
-      return;
-    }
-
-    if (parseFloat(investmentAmount) < selectedProject?.minInvestment) {
+  const handleInvestment = async () => {
+    // Verificar si el proyecto ya está completamente financiado
+    if (selectedProject.totalRaised >= selectedProject.fixedAmount) {
       showNotification(
-        'Monto Insuficiente', 
-        `El monto mínimo de inversión para este proyecto es ${formatCOP(selectedProject.minInvestment)}. Por favor ajusta tu inversión.`,
-        'warning'
+        'Error de Validación', 
+        'Este proyecto ya está completamente financiado.',
+        'error'
       );
       return;
     }
 
-    if (parseFloat(investmentAmount) > selectedProject?.maxInvestment) {
-      showNotification(
-        'Monto Excedido', 
-        `El monto máximo de inversión para este proyecto es ${formatCOP(selectedProject.maxInvestment)}. Por favor ajusta tu inversión.`,
-        'warning'
-      );
-      return;
-    }
-
-    if (parseFloat(investmentAmount) > availableBalance) {
-      showNotification(
+    // Usar directamente el monto fijo del proyecto
+     const investmentAmount = selectedProject.fixedAmount;
+ 
+     if (investmentAmount > availableBalance) {
+       showNotification(
         'Saldo Insuficiente', 
         `No tienes suficiente saldo disponible para esta inversión. Tu saldo actual es ${formatCOP(availableBalance)}. Por favor recarga tu cuenta.`,
         'error'
@@ -60,7 +50,12 @@ const InvestmentModal = ({
       setInvestmentAmount('');
       onClose();
     } catch (error) {
-      // Error handling - could be replaced with user notification
+      console.error('Investment modal error:', error);
+      showNotification(
+        'Error de Procesamiento',
+        'Hubo un problema al procesar tu inversión. Por favor, verifica tu historial de transacciones para confirmar si se procesó correctamente.',
+        'error'
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -99,7 +94,7 @@ const InvestmentModal = ({
             <h4 className="text-lg font-semibold text-white mb-2">{selectedProject.name}</h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <p className="text-gray-400">Rentabilidad:</p>
+                <p className="text-gray-400">Rentabilidad (Diaria):</p>
                 <p className="text-green-400 font-semibold">{((selectedProject.expectedReturnRate || selectedProject.profitability || 0) * 100).toFixed(1)}%</p>
               </div>
               <div>
@@ -107,12 +102,14 @@ const InvestmentModal = ({
                 <p className="text-blue-400 font-semibold">{selectedProject.durationDays || selectedProject.duration || 'N/A'} días</p>
               </div>
               <div>
-                <p className="text-gray-400">Mín. Inversión:</p>
-                <p className="text-purple-400 font-semibold">{formatCOP(selectedProject.minInvestment)}</p>
+                <p className="text-gray-400">Monto Fijo del Proyecto:</p>
+                <p className="text-purple-400 font-semibold">{formatCOP(selectedProject.fixedAmount)}</p>
               </div>
               <div>
-                <p className="text-gray-400">Máx. Inversión:</p>
-                <p className="text-cyan-400 font-semibold">{formatCOP(selectedProject.maxInvestment)}</p>
+                <p className="text-gray-400">Estado:</p>
+                <p className="text-cyan-400 font-semibold">
+                  {selectedProject.totalRaised >= selectedProject.fixedAmount ? 'Financiado' : 'Disponible'}
+                </p>
               </div>
             </div>
           </div>
@@ -125,16 +122,15 @@ const InvestmentModal = ({
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">$</span>
               <input
                 type="number"
-                value={investmentAmount}
-                onChange={(e) => setInvestmentAmount(e.target.value)}
-                placeholder="0"
-                disabled={isProcessing}
-                className="w-full pl-8 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all duration-200 disabled:opacity-50"
+                value={selectedProject?.fixedAmount || ''}
+                readOnly
+                className="w-full pl-8 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none cursor-not-allowed"
+                placeholder="Monto fijo del proyecto"
               />
             </div>
             <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>Mín: {formatCOP(selectedProject.minInvestment)}</span>
-              <span>Máx: {formatCOP(selectedProject.maxInvestment)}</span>
+              <span>Monto fijo requerido</span>
+              <span>Requerido: {formatCOP(selectedProject.fixedAmount)}</span>
             </div>
             <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
               <div className="flex justify-between items-center">
@@ -170,8 +166,8 @@ const InvestmentModal = ({
               Cancelar
             </button>
             <button
-              onClick={handleInvest}
-              disabled={isProcessing || !investmentAmount || parseFloat(investmentAmount) <= 0}
+              onClick={handleInvestment}
+              disabled={isProcessing || selectedProject?.totalRaised >= selectedProject?.fixedAmount}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-xl transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isProcessing ? (

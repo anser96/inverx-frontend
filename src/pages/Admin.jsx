@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axiosConfig';
 import Modal from '../components/Modal';
+import ProjectStatistics from '../components/ProjectStatistics';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -19,9 +20,9 @@ const Admin = () => {
   const [projectForm, setProjectForm] = useState({
     name: '',
     expectedReturnRate: '',
-    minAmount: '',
-    maxAmount: '',
-    endDate: ''
+    fixedAmount: '',
+    endDate: '',
+    withdrawalRestrictionPercentage: ''
   });
 
   // Función para mostrar mensajes
@@ -29,87 +30,6 @@ const Admin = () => {
     setModalMessage({ type, title, content, buttonText });
     setShowMessageModal(true);
   }, []);
-
-  // Función para formatear moneda
-  const formatCOP = (amount) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP'
-    }).format(amount);
-  };
-
-  // Obtener transacciones pendientes
-  const fetchPendingTransactions = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axiosInstance.get('/transactions/pending', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.data && Array.isArray(response.data)) {
-        setPendingTransactions(response.data);
-      } else {
-        setPendingTransactions([]);
-      }
-    } catch (error) {
-      showMessage('error', 'Error', 'No se pudieron cargar las transacciones pendientes.');
-      setPendingTransactions([]);
-    }
-  }, [showMessage]);
-
-  // Obtener proyectos
-  const fetchProjects = useCallback(async () => {
-    setProjectsLoading(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axiosInstance.get('/projects', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.data && Array.isArray(response.data)) {
-        setProjects(response.data);
-      } else {
-        setProjects([]);
-      }
-    } catch (error) {
-      showMessage('error', 'Error', 'No se pudieron cargar los proyectos.');
-      setProjects([]);
-    } finally {
-      setProjectsLoading(false);
-    }
-  }, [showMessage]);
-
-  // Verificar autenticación y rol de administrador
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userRole = localStorage.getItem('userRole');
-    
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-    
-    if (userRole !== 'ADMIN') {
-      showMessage('error', 'Acceso Denegado', `No tienes permisos para acceder al panel administrativo. Rol actual: ${userRole || 'No definido'}`);
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
-      return;
-    }
-    
-    // Cargar datos iniciales
-    const loadInitialData = async () => {
-      await fetchPendingTransactions();
-      await fetchProjects();
-      setLoading(false);
-    };
-    
-    loadInitialData();
-  }, [navigate, showMessage, fetchPendingTransactions, fetchProjects]);
 
   // Cambiar estado de proyecto (activar/desactivar)
   const toggleProjectStatus = async (projectId, currentStatus) => {
@@ -187,66 +107,85 @@ const Admin = () => {
     }
   };
 
-  // Crear proyecto
-  const createProject = async (e) => {
-    e.preventDefault();
-    
-    // Validación básica
-    if (!projectForm.name || !projectForm.expectedReturnRate || !projectForm.minAmount || !projectForm.maxAmount || !projectForm.endDate) {
-      showMessage('error', 'Error de Validación', 'Todos los campos son obligatorios.');
-      return;
-    }
-    
-    // Validación de montos
-    const minAmount = parseFloat(projectForm.minAmount);
-    const maxAmount = parseFloat(projectForm.maxAmount);
-    
-    if (minAmount > maxAmount) {
-      showMessage('error', 'Error de Validación', 'El monto mínimo no puede ser mayor que el monto máximo.');
-      return;
-    }
-    
-    setCreatingProject(true);
+  // Función para formatear moneda
+  const formatCOP = (amount) => {
+    return new Intl.NumberFormat('es-CO', {
+      style: 'currency',
+      currency: 'COP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // Obtener transacciones pendientes
+  const fetchPendingTransactions = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const projectData = {
-        name: projectForm.name,
-        expectedReturnRate: parseFloat(projectForm.expectedReturnRate),
-        minAmount: minAmount,
-        maxAmount: maxAmount,
-        endDate: projectForm.endDate
-      };
-      
-      await axiosInstance.post('/projects', projectData, {
+      const response = await axiosInstance.get('/transactions/pending', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
       });
-      
-      showMessage('success', 'Proyecto Creado', 'El proyecto ha sido creado exitosamente.', 'Aceptar');
-      
-      // Limpiar formulario
-      setProjectForm({
-        name: '',
-        expectedReturnRate: '',
-        minAmount: '',
-        maxAmount: '',
-        endDate: ''
-      });
-      
-      // Cerrar modal
-      setShowCreateProjectModal(false);
-      
-      // Recargar la lista de proyectos
-      await fetchProjects();
+      if (response.data && Array.isArray(response.data)) {
+        setPendingTransactions(response.data);
+      } else {
+        setPendingTransactions([]);
+      }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'No se pudo crear el proyecto.';
-      showMessage('error', 'Error de Creación', errorMessage);
-    } finally {
-      setCreatingProject(false);
+      console.error('Error fetching pending transactions:', error);
+      setPendingTransactions([]);
     }
-  };
+  }, []);
+
+  // Obtener proyectos
+  const fetchProjects = useCallback(async () => {
+    setProjectsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axiosInstance.get('projects', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.data && Array.isArray(response.data)) {
+        setProjects(response.data);
+      } else {
+        setProjects([]);
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setProjects([]);
+    } finally {
+      setProjectsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userRole = localStorage.getItem('userRole');
+    
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    if (userRole !== 'ADMIN') {
+      showMessage('error', 'Acceso Denegado', 'No tienes permisos para acceder a esta página.');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+      return;
+    }
+
+    // Cargar datos iniciales
+    const loadInitialData = async () => {
+      await fetchPendingTransactions();
+      await fetchProjects();
+      setLoading(false);
+    };
+     
+     loadInitialData();
+   }, [navigate, showMessage, fetchPendingTransactions, fetchProjects]);
 
   // Manejar cambios en el formulario
   const handleFormChange = (e) => {
@@ -264,15 +203,86 @@ const Admin = () => {
     navigate('/login');
   };
 
+  // Crear proyecto
+  const createProject = async (e) => {
+    e.preventDefault();
+    
+    // Validación básica
+    if (!projectForm.name || !projectForm.expectedReturnRate || !projectForm.fixedAmount || !projectForm.endDate) {
+      showMessage('error', 'Error de Validación', 'Todos los campos son obligatorios.');
+      return;
+    }
+    
+    // Validación de monto
+    const fixedAmount = parseFloat(projectForm.fixedAmount);
+    const withdrawalRestriction = parseFloat(projectForm.withdrawalRestrictionPercentage);
+    
+    if (fixedAmount <= 0) {
+      showMessage('error', 'Error de Validación', 'El monto fijo del proyecto debe ser mayor a 0.');
+      return;
+    }
+    
+    // Validar porcentaje de restricción solo si se proporciona un valor
+    if (projectForm.withdrawalRestrictionPercentage && (withdrawalRestriction < 0 || withdrawalRestriction > 100)) {
+      showMessage('error', 'Error de Validación', 'El porcentaje de restricción de retiro debe estar entre 0 y 100.');
+      return;
+    }
+    
+    setCreatingProject(true);
+    try {
+      const token = localStorage.getItem('token');
+      const projectData = {
+        name: projectForm.name,
+        expectedReturnRate: parseFloat(projectForm.expectedReturnRate),
+        fixedAmount: fixedAmount,
+        endDate: projectForm.endDate + 'T23:59:59'
+      };
+      
+      // Solo incluir withdrawalRestrictionPercentage si tiene un valor válido
+      if (withdrawalRestriction >= 0 && withdrawalRestriction <= 100) {
+        projectData.withdrawalRestrictionPercentage = withdrawalRestriction;
+      }
+      
+      await axiosInstance.post('projects', projectData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      showMessage('success', 'Proyecto Creado', 'El proyecto ha sido creado exitosamente.', 'Aceptar');
+      
+      // Limpiar formulario
+      setProjectForm({
+        name: '',
+        expectedReturnRate: '',
+        fixedAmount: '',
+        endDate: '',
+        withdrawalRestrictionPercentage: ''
+      });
+      
+      // Cerrar modal
+      setShowCreateProjectModal(false);
+      
+      // Recargar la lista de proyectos
+      await fetchProjects();
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'No se pudo crear el proyecto.';
+      showMessage('error', 'Error de Creación', errorMessage);
+    } finally {
+      setCreatingProject(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Cargando panel administrativo...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-white">Cargando...</div>
+        </div>
       </div>
     );
   }
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -284,12 +294,10 @@ const Admin = () => {
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-cyan-600 rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.414-5.414l4.242 4.242M9 12l4-4 2 2M7.536 7.536L12 12m0 0l4.464 4.464M12 12L7.536 16.464" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
-                  Panel Administrativo
-                </h1>
+                <span className="text-white font-semibold text-lg">Panel Administrativo</span>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -312,7 +320,6 @@ const Admin = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
         <div className="mb-8">
           <div className="flex space-x-1 bg-white/5 p-1 rounded-xl border border-white/10">
             <button
@@ -325,7 +332,7 @@ const Admin = () => {
             >
               <div className="flex items-center justify-center space-x-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
                 <span>Transacciones</span>
               </div>
@@ -340,12 +347,26 @@ const Admin = () => {
             >
               <div className="flex items-center justify-center space-x-2">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0V9a1 1 0 011-1h4a1 1 0 011 1v2M7 7h10M7 11h10m-5 8h.01" />
                 </svg>
-                <span>Gestionar Proyectos</span>
+                <span>Proyectos</span>
               </div>
             </button>
-
+            <button
+              onClick={() => setActiveTab('statistics')}
+              className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                activeTab === 'statistics'
+                  ? 'bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Estadísticas</span>
+              </div>
+            </button>
           </div>
         </div>
 
@@ -374,202 +395,153 @@ const Admin = () => {
               </button>
             </div>
 
-            {/* Transactions Table */}
-            {pendingTransactions.length > 0 ? (
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="backdrop-blur-sm bg-white/5 border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          ID
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Usuario
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Contacto
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Tipo
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Monto
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Descripción
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Fecha
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {pendingTransactions
-                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                        .map((transaction) => (
-                        <tr key={transaction.id} className="hover:bg-white/5 transition-colors duration-300 group">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-cyan-300">
-                            #{transaction.id}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <div className="space-y-1">
-                              <div className="font-medium text-white">{transaction.userName || 'N/A'}</div>
-                              <div className="text-xs text-gray-400">ID: {transaction.userId}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-1">
-                                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                                <span className="text-xs">{transaction.userEmail || 'N/A'}</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                                <span className="text-xs">{transaction.userPhone || 'N/A'}</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                            <div className="flex items-center space-x-2">
-                              <div className={`flex items-center justify-center w-6 h-6 rounded-full border ${
-                                transaction.type === 'WITHDRAWAL'
-                                  ? 'bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-400/30'
-                                  : transaction.type === 'TOPUP'
-                                  ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-400/30'
-                                  : 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-400/30'
-                              }`}>
-                                {transaction.type === 'WITHDRAWAL' ? (
-                                  <svg className="w-3 h-3 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                                  </svg>
-                                ) : transaction.type === 'TOPUP' ? (
-                                  <svg className="w-3 h-3 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                  </svg>
-                                )}
-                              </div>
-                              <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent font-semibold">
-                                {transaction.type}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-cyan-300">
-                            {formatCOP(transaction.amount)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <div className="max-w-xs">
-                              <p className="text-xs leading-relaxed">
-                                {transaction.description || 'Sin descripción'}
-                              </p>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            {(() => {
-                              const date = new Date(transaction.createdAt);
-                              const year = date.getUTCFullYear();
-                              const month = date.getUTCMonth();
-                              const day = date.getUTCDate();
-                              const hours = date.getUTCHours().toString().padStart(2, '0');
-                              const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-                              const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
-                              return `${day} ${monthNames[month]} ${year}, ${hours}:${minutes}`;
-                            })()} 
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => approveTransaction(transaction.id)}
-                                disabled={processingTransactionId === transaction.id}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
-                                  processingTransactionId === transaction.id
-                                    ? 'bg-gray-600/50 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-green-600/80 to-emerald-600/80 hover:from-green-500/90 hover:to-emerald-500/90 text-white border-white/20 hover:shadow-green-500/25'
-                                }`}
-                              >
-                                {processingTransactionId === transaction.id ? (
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Procesando...</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center space-x-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span>Aprobar</span>
-                                  </div>
-                                )}
-                              </button>
-                              <button
-                                onClick={() => rejectTransaction(transaction.id)}
-                                disabled={processingTransactionId === transaction.id}
-                                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
-                                  processingTransactionId === transaction.id
-                                    ? 'bg-gray-600/50 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-red-600/80 to-pink-600/80 hover:from-red-500/90 hover:to-pink-500/90 text-white border-white/20 hover:shadow-red-500/25'
-                                }`}
-                              >
-                                {processingTransactionId === transaction.id ? (
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Procesando...</span>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center space-x-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                    <span>Rechazar</span>
-                                  </div>
-                                )}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* Transactions List */}
+            {pendingTransactions.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay transacciones pendientes</h3>
+                <p className="text-gray-400">Todas las transacciones han sido procesadas.</p>
               </div>
             ) : (
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-8 text-center shadow-2xl">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-green-600/30 to-emerald-600/30 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+              <div className="space-y-4">
+                {pendingTransactions.map((transaction) => (
+                  <div key={transaction.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full flex items-center justify-center">
+                            <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-semibold text-white">{transaction.type || 'Transacción'}</h3>
+                            <p className="text-gray-400">ID: {transaction.id}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Usuario</p>
+                            <p className="text-white font-medium">{transaction.userName || transaction.userId || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Monto</p>
+                            <p className="text-white font-medium">{formatCOP(transaction.amount || 0)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Proyecto</p>
+                            <p className="text-white font-medium">{transaction.projectName || transaction.projectId || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-400 mb-1">Fecha</p>
+                            <p className="text-white font-medium">
+                              {(() => {
+                                if (!transaction.createdAt) return 'N/A';
+                                const date = new Date(transaction.createdAt);
+                                if (isNaN(date.getTime())) return 'Fecha inválida';
+                                return date.toLocaleDateString('es-CO', {
+                                  timeZone: 'America/Bogota',
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                });
+                              })()} 
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {transaction.description && (
+                          <div className="mb-4">
+                            <p className="text-sm text-gray-400 mb-1">Descripción</p>
+                            <p className="text-gray-300">{transaction.description}</p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="ml-6 flex flex-col space-y-3">
+                        <button
+                          onClick={() => approveTransaction(transaction.id)}
+                          disabled={processingTransactionId === transaction.id}
+                          className="px-4 py-2 bg-gradient-to-r from-green-600/80 to-emerald-600/80 text-white rounded-lg hover:from-green-500/90 hover:to-emerald-500/90 transition-all duration-300 border border-green-500/30 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingTransactionId === transaction.id ? (
+                            <>
+                              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Procesando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span>Aprobar</span>
+                            </>
+                          )}
+                        </button>
+                        
+                        <button
+                          onClick={() => rejectTransaction(transaction.id)}
+                          disabled={processingTransactionId === transaction.id}
+                          className="px-4 py-2 bg-gradient-to-r from-red-600/80 to-pink-600/80 text-white rounded-lg hover:from-red-500/90 hover:to-pink-500/90 transition-all duration-300 border border-red-500/30 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {processingTransactionId === transaction.id ? (
+                            <>
+                              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span>Procesando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                              <span>Rechazar</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-300 text-lg font-medium">No hay transacciones pendientes</p>
-                  <p className="text-gray-400 text-sm">Todas las transacciones han sido procesadas</p>
-                </div>
+                ))}
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === 'projects' ? (
           <div>
             <div className="mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-4">
-                Gestión de Proyectos
-              </h2>
-              <p className="text-gray-300">
-                Activa o desactiva proyectos de inversión.
-              </p>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-4">
+                    Gestión de Proyectos
+                  </h2>
+                  <p className="text-gray-300">
+                    Activa o desactiva proyectos de inversión y crea nuevos proyectos.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowCreateProjectModal(true)}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white rounded-lg hover:from-purple-500/90 hover:to-blue-500/90 transition-all duration-300 border border-white/20 flex items-center space-x-2"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Crear Proyecto</span>
+                </button>
+              </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="mb-6 flex flex-wrap gap-4">
+            {/* Refresh Button */}
+            <div className="mb-6">
               <button
                 onClick={fetchProjects}
                 disabled={projectsLoading}
@@ -580,186 +552,139 @@ const Admin = () => {
                 </svg>
                 <span>{projectsLoading ? 'Cargando...' : 'Actualizar Lista'}</span>
               </button>
-              
-              <button
-                onClick={() => setShowCreateProjectModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white rounded-lg hover:from-purple-500/90 hover:to-blue-500/90 transition-all duration-300 border border-white/20 flex items-center space-x-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span>Crear Proyecto</span>
-              </button>
             </div>
 
-            {/* Projects Table */}
-            {projects.length > 0 ? (
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl overflow-hidden shadow-2xl">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead className="backdrop-blur-sm bg-white/5 border-b border-white/10">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          ID
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Nombre
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Descripción
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Meta de Inversión
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Recaudado
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Estado
-                        </th>
-                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-300 uppercase tracking-wider">
-                          Acciones
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {projects.map((project) => (
-                        <tr key={project.id} className="hover:bg-white/5 transition-colors duration-300 group">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-cyan-300">
-                            #{project.id}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <div className="font-medium text-white">{project.name || 'N/A'}</div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-300 group-hover:text-white transition-colors duration-300 max-w-xs">
-                            <div className="truncate" title={project.description}>
-                              {project.description || 'Sin descripción'}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <span className="font-semibold text-green-400">
-                              {formatCOP(project.investmentGoal)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300 group-hover:text-white transition-colors duration-300">
-                            <div className="space-y-1">
-                              <span className="font-semibold text-blue-400">
-                                {formatCOP(project.currentAmount || 0)}
-                              </span>
-                              <div className="w-full bg-gray-700 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
-                                  style={{ 
-                                    width: `${Math.min(((project.currentAmount || 0) / (project.investmentGoal || 1)) * 100, 100)}%` 
-                                  }}
-                                ></div>
-                              </div>
-                              <div className="text-xs text-gray-400">
-                                {Math.round(((project.currentAmount || 0) / (project.investmentGoal || 1)) * 100)}%
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                              project.status
-                                ? 'bg-green-100 text-green-800 border border-green-200'
-                                : 'bg-red-100 text-red-800 border border-red-200'
-                            }`}>
-                              <div className={`w-2 h-2 rounded-full mr-2 ${
-                                project.status ? 'bg-green-500' : 'bg-red-500'
-                              }`}></div>
-                              {project.status ? 'Activo' : 'Inactivo'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <button
-                              onClick={() => toggleProjectStatus(project.id, project.status)}
-                              disabled={processingProjectId === project.id}
-                              className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 border ${
-                                processingProjectId === project.id
-                                  ? 'bg-gray-600/50 text-gray-400 border-gray-500/30 cursor-not-allowed'
-                                  : project.status
-                                    ? 'bg-gradient-to-r from-red-600/80 to-pink-600/80 hover:from-red-500/90 hover:to-pink-500/90 text-white border-white/20 hover:shadow-red-500/25'
-                                    : 'bg-gradient-to-r from-green-600/80 to-emerald-600/80 hover:from-green-500/90 hover:to-emerald-500/90 text-white border-white/20 hover:shadow-green-500/25'
-                              }`}
-                            >
-                              {processingProjectId === project.id ? (
-                                <div className="flex items-center space-x-2">
-                                  <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                                  <span>Procesando...</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center space-x-2">
-                                  {project.status ? (
-                                    <>
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
-                                      </svg>
-                                      <span>Desactivar</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                      </svg>
-                                      <span>Activar</span>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* Projects List */}
+            {projects.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-24 h-24 mx-auto mb-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-full flex items-center justify-center">
+                  <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h4a1 1 0 011 1v5m-6 0V9a1 1 0 011-1h4a1 1 0 011 1v2M7 7h10M7 11h10m-5 8h.01" />
+                  </svg>
                 </div>
+                <h3 className="text-xl font-semibold text-gray-300 mb-2">No hay proyectos disponibles</h3>
+                <p className="text-gray-400">Crea el primer proyecto para comenzar.</p>
               </div>
             ) : (
-              <div className="backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl p-8 text-center shadow-2xl">
-                <div className="flex flex-col items-center space-y-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-purple-600/30 to-blue-600/30 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+              <div className="space-y-4">
+                {projects.map((project) => (
+                  <div key={project.id} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl p-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <h3 className="text-xl font-semibold text-white">{project.name}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            project.status 
+                              ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                              : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          }`}>
+                            {project.status ? 'Activo' : 'Inactivo'}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-gray-400 text-sm">Monto Objetivo</p>
+                            <p className="text-white font-medium">{formatCOP(project.fixedAmount)}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 text-sm">Tasa de Retorno</p>
+                            <p className="text-white font-medium">{project.expectedReturnRate}%</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 text-sm">Fecha de Finalización</p>
+                            <p className="text-white font-medium">
+                              {new Date(project.endDate).toLocaleDateString('es-CO')}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {project.withdrawalRestrictionPercentage && (
+                          <div className="mb-4">
+                            <p className="text-gray-400 text-sm">Restricción de Retiro</p>
+                            <p className="text-white font-medium">{project.withdrawalRestrictionPercentage}%</p>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center space-x-4 text-sm text-gray-300">
+                          <span>ID: {project.id}</span>
+                          <span>Creado: {new Date(project.createdAt).toLocaleDateString('es-CO')}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-6">
+                        <button
+                          onClick={() => toggleProjectStatus(project.id, project.status)}
+                          disabled={processingProjectId === project.id}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            project.status
+                              ? 'bg-red-600/80 hover:bg-red-500/90 text-white border border-red-500/30'
+                              : 'bg-green-600/80 hover:bg-green-500/90 text-white border border-green-500/30'
+                          }`}
+                        >
+                          {processingProjectId === project.id ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                              <span>Procesando...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {project.status ? (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                ) : (
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                )}
+                              </svg>
+                              <span>{project.status ? 'Desactivar' : 'Activar'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-300 text-lg font-medium">No hay proyectos disponibles</p>
-                  <p className="text-gray-400 text-sm">Los proyectos aparecerán aquí cuando estén disponibles</p>
-                </div>
+                ))}
               </div>
             )}
           </div>
-        )}
+        ) : activeTab === 'statistics' ? (
+          <ProjectStatistics />
+        ) : null}
       </div>
 
-      {/* Modal para mensajes */}
+      {/* Modal de Mensaje */}
       <Modal
         isOpen={showMessageModal}
         onClose={() => setShowMessageModal(false)}
         title={modalMessage.title}
-        cancelText={modalMessage.buttonText || 'Cancelar'}
       >
-        <div className="text-center py-4">
-          <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${
-            modalMessage.type === 'success' 
-              ? 'bg-green-100 text-green-600' 
-              : 'bg-red-100 text-red-600'
+        <div className="text-center py-6">
+          <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
+            modalMessage.type === 'success'
+              ? 'bg-green-100 text-green-600'
+              : modalMessage.type === 'error'
+              ? 'bg-red-100 text-red-600'
+              : 'bg-blue-100 text-blue-600'
           }`}>
             {modalMessage.type === 'success' ? (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-            ) : (
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            ) : modalMessage.type === 'error' ? (
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             )}
           </div>
-          <p className="text-gray-700 whitespace-pre-line">{modalMessage.content}</p>
+          <p className="text-gray-300">{modalMessage.content}</p>
         </div>
       </Modal>
 
-      {/* Modal para crear proyecto */}
+      {/* Modal de Crear Proyecto */}
       <Modal
         isOpen={showCreateProjectModal}
         onClose={() => {
@@ -767,105 +692,100 @@ const Admin = () => {
           setProjectForm({
             name: '',
             expectedReturnRate: '',
-            minAmount: '',
-            maxAmount: '',
-            endDate: ''
+            fixedAmount: '',
+            endDate: '',
+            withdrawalRestrictionPercentage: ''
           });
         }}
         title="Crear Nuevo Proyecto"
-        showActions={false}
       >
         <form onSubmit={createProject} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Nombre del Proyecto */}
-            <div className="md:col-span-2">
-              <label htmlFor="modal-name" className="block text-sm font-medium text-gray-700 mb-2">
-                Nombre del Proyecto *
-              </label>
-              <input
-                type="text"
-                id="modal-name"
-                name="name"
-                value={projectForm.name}
-                onChange={handleFormChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Ingrese el nombre del proyecto"
-                required
-              />
-            </div>
+          {/* Nombre del Proyecto */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Nombre del Proyecto *
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={projectForm.name}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Ingresa el nombre del proyecto"
+              required
+            />
+          </div>
 
-            {/* Tasa de Retorno Esperada */}
-            <div>
-              <label htmlFor="modal-expectedReturnRate" className="block text-sm font-medium text-gray-700 mb-2">
-                Tasa de Retorno Esperada (%) *
-              </label>
-              <input
-                type="number"
-                id="modal-expectedReturnRate"
-                name="expectedReturnRate"
-                value={projectForm.expectedReturnRate}
-                onChange={handleFormChange}
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Ej: 15.50"
-                required
-              />
-            </div>
+          {/* Tasa de Retorno Esperada */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Tasa de Retorno Esperada (%) *
+            </label>
+            <input
+              type="number"
+              name="expectedReturnRate"
+              value={projectForm.expectedReturnRate}
+              onChange={handleFormChange}
+              step="0.01"
+              min="0"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Ej: 15.5"
+              required
+            />
+          </div>
 
-            {/* Fecha de Finalización */}
-            <div>
-              <label htmlFor="modal-endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Fecha de Finalización *
-              </label>
-              <input
-                type="datetime-local"
-                id="modal-endDate"
-                name="endDate"
-                value={projectForm.endDate}
-                onChange={handleFormChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                required
-              />
-            </div>
+          {/* Monto Fijo */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Monto Fijo (COP) *
+            </label>
+            <input
+              type="number"
+              name="fixedAmount"
+              value={projectForm.fixedAmount}
+              onChange={handleFormChange}
+              min="1"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Ej: 1000000"
+              required
+            />
+          </div>
 
-            {/* Monto Mínimo */}
-            <div>
-              <label htmlFor="modal-minAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                Monto Mínimo (COP) *
-              </label>
-              <input
-                type="number"
-                id="modal-minAmount"
-                name="minAmount"
-                value={projectForm.minAmount}
-                onChange={handleFormChange}
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Ej: 100000"
-                required
-              />
-            </div>
+          {/* Fecha de Finalización */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Fecha de Finalización *
+            </label>
+            <input
+              type="date"
+              name="endDate"
+              value={projectForm.endDate}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              required
+            />
+          </div>
 
-            {/* Monto Máximo */}
-            <div>
-              <label htmlFor="modal-maxAmount" className="block text-sm font-medium text-gray-700 mb-2">
-                Monto Máximo (COP) *
-              </label>
-              <input
-                type="number"
-                id="modal-maxAmount"
-                name="maxAmount"
-                value={projectForm.maxAmount}
-                onChange={handleFormChange}
-                step="0.01"
-                min="0"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                placeholder="Ej: 5000000"
-                required
-              />
-            </div>
+          {/* Porcentaje de Restricción de Retiro */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Restricción de Retiro (%)
+              <span className="text-gray-400 text-xs ml-1">(Opcional)</span>
+            </label>
+            <input
+              type="number"
+              name="withdrawalRestrictionPercentage"
+              value={projectForm.withdrawalRestrictionPercentage}
+              onChange={handleFormChange}
+              step="0.01"
+              min="0"
+              max="100"
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Ej: 10.5"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Porcentaje del monto que no se puede retirar antes del vencimiento
+            </p>
           </div>
 
           {/* Botones */}
@@ -877,9 +797,9 @@ const Admin = () => {
                 setProjectForm({
                   name: '',
                   expectedReturnRate: '',
-                  minAmount: '',
-                  maxAmount: '',
-                  endDate: ''
+                  fixedAmount: '',
+                  endDate: '',
+                  withdrawalRestrictionPercentage: ''
                 });
               }}
               className="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-all duration-200 flex items-center space-x-2"

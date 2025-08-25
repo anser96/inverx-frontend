@@ -63,15 +63,9 @@ const ProjectsList = ({
                 
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">Inversión mínima:</span>
+                    <span className="text-gray-300 text-sm">Monto fijo del proyecto:</span>
                     <span className="text-white font-semibold">
-                      {formatCOP(project.minInvestment)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">Inversión máxima:</span>
-                    <span className="text-white font-semibold">
-                      {formatCOP(project.maxInvestment)}
+                      {formatCOP(project.fixedAmount)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -87,14 +81,14 @@ const ProjectsList = ({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-400 text-xs">Progreso del proyecto</span>
                     <span className="text-gray-400 text-xs">
-                      {Math.round(((project.totalRaised || 0) / project.maxInvestment) * 100)}%
+                      {Math.round(((project.totalRaised || 0) / project.fixedAmount) * 100)}%
                     </span>
                   </div>
                   <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full transition-all duration-1000 ease-out"
                       style={{ 
-                        width: `${Math.min(((project.totalRaised || 0) / project.maxInvestment) * 100, 100)}%` 
+                        width: `${Math.min(((project.totalRaised || 0) / project.fixedAmount) * 100, 100)}%` 
                       }}
                     ></div>
                   </div>

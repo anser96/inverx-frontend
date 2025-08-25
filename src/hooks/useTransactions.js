@@ -92,6 +92,7 @@ const useTransactions = () => {
       if (!userId) {
         throw new Error('No user ID found');
       }
+      
       const response = await axiosInstance.post(`/investments/${userId}/${projectId}?amount=${parseFloat(amount)}`);
       
       // Refresh transactions after successful investment
@@ -102,10 +103,33 @@ const useTransactions = () => {
         message: response.data.message || 'Inversión realizada exitosamente'
       };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Error al procesar la inversión';
+      console.error('Investment error:', error);
+      
+      // Si hay un error, intentar refrescar las transacciones para verificar si la inversión se procesó
+      try {
+        await fetchTransactions();
+      } catch (refreshError) {
+        console.error('Error refreshing transactions:', refreshError);
+      }
+      
+      // Determinar el mensaje de error apropiado
+      let errorMessage = 'Error al procesar la inversión';
+      
+      if (error.response) {
+        // El servidor respondió con un código de estado de error
+        errorMessage = error.response.data?.message || `Error del servidor (${error.response.status})`;
+      } else if (error.request) {
+        // La petición se hizo pero no se recibió respuesta
+        errorMessage = 'No se pudo conectar con el servidor. Por favor, verifica tu conexión e intenta nuevamente.';
+      } else {
+        // Algo pasó al configurar la petición
+        errorMessage = error.message || 'Error inesperado al procesar la inversión';
+      }
+      
       return {
         success: false,
-        message: errorMessage
+        message: errorMessage,
+        shouldCheckTransactions: true // Indicar que se debe verificar las transacciones
       };
     } finally {
       setLoading(false);

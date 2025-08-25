@@ -5,6 +5,7 @@ const DashboardStats = ({
   userInfo, 
   dashboardData, 
   detailedBalance, 
+  detailedBalanceInfo,
   projects, 
   formatCOP, 
   setShowTopUpModal, 
@@ -41,10 +42,15 @@ const DashboardStats = ({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-gray-400 text-sm">Balance disponible</p>
+            <p className="text-gray-400 text-sm">Balance Total</p>
             <p className="text-2xl sm:text-3xl font-bold text-cyan-300">
-              {formatCOP(getAvailableBalance())}
+              {formatCOP(detailedBalanceInfo?.availableBalance || getAvailableBalance())}
             </p>
+            {detailedBalanceInfo && !detailedBalanceInfo.canWithdrawNow && (
+              <p className="text-yellow-400 text-xs mt-1">
+                Retiro restringido hasta {detailedBalanceInfo.nextWithdrawalDate}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -67,18 +73,39 @@ const DashboardStats = ({
           </div>
         </div>
 
-        <div className="backdrop-blur-xl bg-gradient-to-br from-green-600/20 to-emerald-600/20 border border-white/20 rounded-2xl p-6 shadow-2xl hover:shadow-green-500/10 transition-all duration-300">
+        <div className={`backdrop-blur-xl bg-gradient-to-br border rounded-2xl p-6 shadow-2xl transition-all duration-300 ${
+          detailedBalanceInfo?.canWithdrawNow 
+            ? 'from-green-600/20 to-emerald-600/20 border-white/20 hover:shadow-green-500/10' 
+            : 'from-yellow-600/20 to-orange-600/20 border-yellow-400/30 hover:shadow-yellow-500/10'
+        }`}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-gray-300 text-sm font-medium">Disponible para Retiro</p>
-              <p className="text-2xl font-bold text-white mt-2">
-                {formatCOP(detailedBalance?.availableToWithdraw || 0)}
+              <p className="text-gray-300 text-sm font-medium">
+                {detailedBalanceInfo?.canWithdrawNow ? 'Retirable Ahora' : 'Retiro Restringido'}
               </p>
+              <p className="text-2xl font-bold text-white mt-2">
+                {formatCOP(detailedBalanceInfo?.currentlyWithdrawable || detailedBalance?.availableToWithdraw || 0)}
+              </p>
+              {detailedBalanceInfo && !detailedBalanceInfo.canWithdrawNow && (
+                <p className="text-yellow-300 text-xs mt-1">
+                  Disponible: {detailedBalanceInfo.nextWithdrawalDate}
+                </p>
+              )}
             </div>
-            <div className="w-12 h-12 bg-gradient-to-r from-green-500/30 to-emerald-500/30 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
+            <div className={`w-12 h-12 bg-gradient-to-r rounded-full flex items-center justify-center ${
+              detailedBalanceInfo?.canWithdrawNow 
+                ? 'from-green-500/30 to-emerald-500/30' 
+                : 'from-yellow-500/30 to-orange-500/30'
+            }`}>
+              {detailedBalanceInfo?.canWithdrawNow ? (
+                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              )}
             </div>
           </div>
         </div>

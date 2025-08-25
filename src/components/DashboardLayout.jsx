@@ -28,8 +28,10 @@ const DashboardLayout = () => {
     userInfo,
     dashboardData,
     detailedBalance,
+    detailedBalanceInfo,
     projects,
-    loading: userLoading,
+    loading,
+    error,
     refreshAllData
   } = useUserData();
   
@@ -58,7 +60,11 @@ const DashboardLayout = () => {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [showMessageModal, setShowMessageModal] = useState(false);
-  const [messageModal, setMessageModal] = useState({ message: '', type: 'info' });
+  const [messageModal, setMessageModal] = useState({ 
+    message: '', 
+    type: 'info', 
+    showTransactionsButton: false 
+  });
 
   // Utility functions
   const formatCOP = (amount) => {
@@ -70,9 +76,14 @@ const DashboardLayout = () => {
     }).format(amount);
   };
 
-  const showMessage = (message, type = 'info') => {
-    setMessageModal({ message, type });
+  const showMessage = (message, type = 'info', showTransactionsButton = false) => {
+    setMessageModal({ message, type, showTransactionsButton });
     setShowMessageModal(true);
+  };
+
+  const handleCheckTransactions = () => {
+    setActiveTab('transactions');
+    fetchTransactions();
   };
 
   // Event handlers
@@ -97,10 +108,31 @@ const DashboardLayout = () => {
         showMessage(result.message, 'success');
         await refreshAllData();
       } else {
-        showMessage(result.message, 'error');
+        // Si hay un error pero se sugiere verificar transacciones
+        if (result.shouldCheckTransactions) {
+          showMessage(
+            `${result.message}\n\nPuedes verificar tu historial de transacciones para confirmar si la inversión se procesó correctamente.`,
+            'error',
+            true // Mostrar botón de verificar transacciones
+          );
+          // Refrescar datos después de un breve delay para capturar posibles cambios
+          setTimeout(async () => {
+            await refreshAllData();
+          }, 2000);
+        } else {
+          showMessage(result.message, 'error');
+        }
       }
     } catch (error) {
-      showMessage('Error al procesar la inversión', 'error');
+      showMessage(
+        'Error inesperado al procesar la inversión. Por favor, verifica tu historial de transacciones.',
+        'error',
+        true // Mostrar botón de verificar transacciones
+      );
+      // Refrescar datos en caso de error inesperado
+      setTimeout(async () => {
+        await refreshAllData();
+      }, 2000);
     }
   };
 
@@ -155,7 +187,7 @@ const DashboardLayout = () => {
     navigate('/admin');
   };
 
-  if (userLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -273,6 +305,7 @@ const DashboardLayout = () => {
               userInfo={userInfo}
               dashboardData={dashboardData}
               detailedBalance={detailedBalance}
+              detailedBalanceInfo={detailedBalanceInfo}
               projects={projects}
               formatCOP={formatCOP}
               setShowTopUpModal={setShowTopUpModal}
@@ -329,6 +362,7 @@ const DashboardLayout = () => {
         onClose={() => setShowWithdrawModal(false)}
         onWithdraw={handleWithdrawSubmit}
         availableBalance={detailedBalance?.availableToWithdraw}
+        detailedBalanceInfo={detailedBalanceInfo}
         formatCOP={formatCOP}
       />
 
@@ -337,6 +371,8 @@ const DashboardLayout = () => {
         onClose={() => setShowMessageModal(false)}
         message={messageModal.message}
         type={messageModal.type}
+        showTransactionsButton={messageModal.showTransactionsButton}
+        onCheckTransactions={handleCheckTransactions}
       />
     </div>
   );
