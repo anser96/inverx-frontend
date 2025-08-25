@@ -11,7 +11,7 @@
   ],
   "routes": [
     {
-      "src": "/favicon\.(ico|svg)",
+      "src": "/favicon\\.(ico|svg)",
       "dest": "/favicon.$1"
     },
     {
