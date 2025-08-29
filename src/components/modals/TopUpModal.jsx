@@ -103,7 +103,7 @@ const TopUpModal = ({
                 <p className="text-green-200 text-sm">
                   Recarga tu saldo para poder realizar inversiones. El monto mínimo es de $10,000 COP.
                 </p>
-              </div>
+              </div> 
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
