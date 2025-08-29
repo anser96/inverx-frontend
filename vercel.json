@@ -15,6 +15,10 @@
       "dest": "/favicon.$1"
     },
     {
+      "src": "/QR\\.(jpeg|jpg|png)",
+      "dest": "/QR.$1"
+    },
+    {
       "src": "/static/(.*)",
       "dest": "/static/$1"
     },

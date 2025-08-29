@@ -203,7 +203,7 @@ const TopUpModal = ({
                 <div className="flex justify-center mb-4">
                   <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center border-4 border-gray-300 p-2">
                     <img 
-                      src="/QR.jpeg" 
+                      src={`${process.env.PUBLIC_URL}/QR.jpeg`} 
                       alt="Código QR para pago" 
                       className="w-full h-full object-contain rounded"
                     />
