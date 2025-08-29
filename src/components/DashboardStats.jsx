@@ -29,12 +29,13 @@ const DashboardStats = ({
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-purple-600/30 to-cyan-600/30 rounded-full flex items-center justify-center border-2 border-white/20">
               <span className="text-2xl font-bold text-white">
-                {userInfo?.fullName?.charAt(0) || 'U'}
+                {/*userInfo?.fullName?.charAt(0) || 'U'*/}
               </span>
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                ¡Hola, {userInfo?.fullName || 'Usuario'}!
+                ¡Hola, {userInfo?.fullName}!
+                {console.log("Informacion del usuario:",userInfo)}
               </h1>
               <p className="text-gray-300 text-sm sm:text-base">
                 Bienvenido a tu panel de inversiones

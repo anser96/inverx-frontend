@@ -198,25 +198,19 @@ const TopUpModal = ({
                 </div>
               </div>
               
-              {/* QR Code Fake para visualización */}
+              {/* QR Code Real */}
               <div className="bg-gradient-to-r from-gray-800/50 to-gray-700/50 border border-gray-600/30 rounded-xl p-6 text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="w-48 h-48 bg-white rounded-lg flex items-center justify-center border-4 border-gray-300">
-                    {/* QR Code Fake - patrón simple para visualización */}
-                    <div className="w-40 h-40 grid grid-cols-8 gap-0.5">
-                      {Array.from({ length: 64 }, (_, i) => (
-                        <div
-                          key={i}
-                          className={`w-full h-full ${
-                            Math.random() > 0.5 ? 'bg-black' : 'bg-white'
-                          }`}
-                        />
-                      ))}
-                    </div>
+                  <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center border-4 border-gray-300 p-2">
+                    <img 
+                      src="/QR.jpeg" 
+                      alt="Código QR para pago" 
+                      className="w-full h-full object-contain rounded"
+                    />
                   </div>
                 </div>
                 <p className="text-gray-300 text-sm mb-2">Escanea este código QR para realizar el pago</p>
-                <p className="text-gray-400 text-xs">Código QR de ejemplo para visualización</p>
+                <p className="text-gray-400 text-xs">Código QR oficial para pagos</p>
               </div>
               
               <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
