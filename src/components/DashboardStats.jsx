@@ -28,14 +28,13 @@ const DashboardStats = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-4">
             <div className="w-16 h-16 bg-gradient-to-r from-purple-600/30 to-cyan-600/30 rounded-full flex items-center justify-center border-2 border-white/20">
-              <span className="text-2xl font-bold text-white">
-                {/*userInfo?.fullName?.charAt(0) || 'U'*/}
-              </span>
+              <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+              </svg>
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                ¡Hola, {userInfo?.fullName}!
-                {console.log("Informacion del usuario:",userInfo)}
+                ¡Hola, {userInfo.fullName}!
               </h1>
               <p className="text-gray-300 text-sm sm:text-base">
                 Bienvenido a tu panel de inversiones

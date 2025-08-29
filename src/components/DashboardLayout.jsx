@@ -316,7 +316,7 @@ const DashboardLayout = () => {
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <DashboardStats
-              userInfo={userData}
+              userInfo={userInfo}
               dashboardData={userData}
               detailedBalance={detailedBalance}
               detailedBalanceInfo={detailedBalanceInfo}
