@@ -22,7 +22,8 @@ const Admin = () => {
     expectedReturnRate: '',
     fixedAmount: '',
     endDate: '',
-    withdrawalRestrictionPercentage: ''
+    withdrawalRestrictionPercentage: '',
+    url: ''
   });
 
   // Función para mostrar mensajes
@@ -243,6 +244,11 @@ const Admin = () => {
         projectData.withdrawalRestrictionPercentage = withdrawalRestriction;
       }
       
+      // Incluir URL de información si se proporciona
+      if (projectForm.url && projectForm.url.trim()) {
+        projectData.url = projectForm.url.trim();
+      }
+      
       await axiosInstance.post('projects', projectData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -258,7 +264,8 @@ const Admin = () => {
         expectedReturnRate: '',
         fixedAmount: '',
         endDate: '',
-        withdrawalRestrictionPercentage: ''
+        withdrawalRestrictionPercentage: '',
+        url: ''
       });
       
       // Cerrar modal
@@ -694,7 +701,8 @@ const Admin = () => {
             expectedReturnRate: '',
             fixedAmount: '',
             endDate: '',
-            withdrawalRestrictionPercentage: ''
+            withdrawalRestrictionPercentage: '',
+            url: ''
           });
         }}
         title="Crear Nuevo Proyecto"
@@ -785,6 +793,25 @@ const Admin = () => {
             />
             <p className="text-xs text-gray-400 mt-1">
               Porcentaje del monto que no se puede retirar antes del vencimiento
+            </p>
+          </div>
+
+          {/* URL de Información */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              URL de Información del Proyecto
+              <span className="text-gray-400 text-xs ml-1">(Opcional)</span>
+            </label>
+            <input
+              type="url"
+              name="url"
+              value={projectForm.url}
+              onChange={handleFormChange}
+              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="https://ejemplo.com/informacion-proyecto"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Enlace con información adicional sobre el proyecto
             </p>
           </div>
 

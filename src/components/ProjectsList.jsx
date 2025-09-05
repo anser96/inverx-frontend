@@ -1,4 +1,5 @@
 import React from 'react';
+import ImageSlider from './ImageSlider';
 
 const ProjectsList = ({ 
   projects, 
@@ -24,9 +25,9 @@ const ProjectsList = ({
               key={project.id} 
               className="group backdrop-blur-xl bg-gradient-to-br from-white/10 to-white/5 border border-white/20 rounded-2xl overflow-hidden shadow-2xl hover:shadow-purple-500/20 transition-all duration-500 hover:scale-[1.02]"
             >
-              <div className="relative h-48 bg-gradient-to-br from-purple-600/30 via-blue-600/30 to-cyan-600/30">
-                <div className="absolute inset-0 bg-black/20"></div>
-                <div className="absolute top-4 left-4">
+              <div className="relative h-48 overflow-hidden">
+                <ImageSlider url={project.url} projectName={project.name} />
+                <div className="absolute top-4 left-4 z-10">
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
                     project.status === true 
                       ? 'bg-green-500/20 text-green-300 border-green-500/30' 
@@ -35,11 +36,11 @@ const ProjectsList = ({
                     {project.status === true ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
-                <div className="absolute bottom-4 left-4 right-4">
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors duration-300">
+                <div className="absolute bottom-4 left-4 right-4 z-10">
+                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-300 transition-colors duration-300 drop-shadow-lg">
                     {project.name}
                   </h3>
-                  <p className="text-gray-200 text-sm line-clamp-2">
+                  <p className="text-gray-200 text-sm line-clamp-2 drop-shadow-lg">
                     {project.description}
                   </p>
                 </div>
@@ -68,50 +69,40 @@ const ProjectsList = ({
                       {formatCOP(project.fixedAmount)}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-300 text-sm">Total recaudado:</span>
-                    <span className="text-cyan-300 font-semibold">
-                      {formatCOP(project.totalRaised || 0)}
-                    </span>
-                  </div>
                 </div>
                 
-                {/* Barra de progreso */}
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400 text-xs">Progreso del proyecto</span>
-                    <span className="text-gray-400 text-xs">
-                      {Math.round(((project.totalRaised || 0) / project.fixedAmount) * 100)}%
+                  <button 
+                    onClick={() => handleInvestClick(project)}
+                    disabled={project.status !== true}
+                    className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 ${
+                      project.status === true
+                        ? 'bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-purple-500/25 group-hover:scale-105'
+                        : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <span>
+                      {project.status === true ? 'Invertir Ahora' : 'No Disponible'}
                     </span>
-                  </div>
-                  <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full transition-all duration-1000 ease-out"
-                      style={{ 
-                        width: `${Math.min(((project.totalRaised || 0) / project.fixedAmount) * 100, 100)}%` 
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={() => handleInvestClick(project)}
-                  disabled={project.status !== true}
-                  className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center space-x-2 ${
-                    project.status === true
-                      ? 'bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white shadow-lg hover:shadow-purple-500/25 group-hover:scale-105'
-                      : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  <span>
-                    {project.status === true ? 'Invertir Ahora' : 'No Disponible'}
-                  </span>
-                  {project.status === true && (
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
+                    {project.status === true && (
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    )}
+                  </button>
+                  
+                  {project.url && (
+                     <button
+                       onClick={() => window.open(project.url, '_blank')}
+                       className="w-full bg-gradient-to-r from-green-600 to-teal-600 text-white py-2 px-4 rounded-lg font-medium hover:from-green-700 hover:to-teal-700 transition-all duration-200 text-sm flex items-center justify-center gap-2"
+                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      Ver más información
+                    </button>
                   )}
-                </button>
+                </div>
               </div>
             </div>
           ))}
