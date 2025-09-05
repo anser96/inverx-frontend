@@ -6,7 +6,6 @@ const ImageSlider = ({ url, projectName }) => {
   const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadImages = async () => {
@@ -97,14 +96,14 @@ const ImageSlider = ({ url, projectName }) => {
     );
   }
 
-  if (error || images.length === 0) {
+  if (images.length === 0) {
     return (
       <div className="w-full h-48 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
         <div className="text-center text-gray-400">
           <svg className="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
-          <p className="text-sm">{error || 'No se pudieron cargar las imágenes'}</p>
+          <p className="text-sm">No se pudieron cargar las imágenes</p>
         </div>
       </div>
     );
